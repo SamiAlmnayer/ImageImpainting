@@ -14,21 +14,17 @@ from PIL import Image
 IMAGE_DIMENSION = 100
 
 
-def create_arrays_from_image(image_array: np.ndarray, offset: tuple, spacing: tuple) -> tuple[np.ndarray, np.ndarray]:
+def create_arrays_from_image(image_array: np.ndarray, offset: tuple, spacing: tuple):
+    image_array = np.transpose(image_array, (2, 0, 1))  # (3,H,W)
 
-    # TODO: Implement the logic to create input and known arrays based on offset and spacing
-    image_array = np.transpose(image_array, (2, 0, 1))
+    mask = np.zeros((1, image_array.shape[1], image_array.shape[2]), dtype=np.float32)
+    mask[:, offset[1]::spacing[1], offset[0]::spacing[0]] = 1.0
 
-    known_array = np.zeros_like(image_array)
+    corrupted = image_array.copy()
+    corrupted[mask.repeat(3, axis=0) == 0] = 0.0
 
-    known_array[:, offset[1]::spacing[1], offset[0]::spacing[0]] = 1
+    return corrupted, mask
 
-    image_array[known_array == 0] = 0 
-
-    known_array = known_array[0:1]
-
-
-    return image_array, known_array
 
 
 def resize(img: Image):

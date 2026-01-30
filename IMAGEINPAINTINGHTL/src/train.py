@@ -17,6 +17,10 @@ from torch.utils.data import Subset
 
 import wandb
 
+def masked_mse(pred, target, mask):
+    missing = 1.0 - mask
+    loss = ((pred - target) ** 2) * missing
+    return loss.sum() / missing.sum().clamp(min=1.0)
 
 def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_stopping_patience, device, learningrate,
           weight_decay, n_updates, use_wandb, print_train_stats_at, print_stats_at, plot_at, validate_at, batchsize,
@@ -107,7 +111,9 @@ def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_st
 
             output = network(input)
 
-            loss = mse_loss(output, target)
+            mask = input[:, 3:4, :, :]
+            loss = masked_mse(output, target, mask)
+
 
             loss.backward()
 

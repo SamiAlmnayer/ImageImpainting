@@ -1,35 +1,57 @@
 """
-    Author: Your Name
-    HTL-Grieskirchen 5. Jahrgang, Schuljahr 2025/26
-    architecture.py
+Author: Your Name
+HTL-Grieskirchen 5. Jahrgang, Schuljahr 2025/26
+architecture.py
 """
 
 import torch
+import torch.nn as nn
 
-class MyModel(torch.nn.Module):
-    # TODO: Implement the model architecture.
-    def __init__(self, n_in_channels: int):
+
+class ResidualBlock(nn.Module):
+    def __init__(self, channels):
         super().__init__()
-
-        self.cnn1 = torch.nn.Conv2d(
-            in_channels=n_in_channels,
-            out_channels=6,
-            kernel_size=3,
-            padding=1
-        )
-
-        self.relu = torch.nn.ReLU()
-
-        self.cnn2 = torch.nn.Conv2d(
-            in_channels=6,
-            out_channels=3,
-            kernel_size=3,
-            padding=1
+        self.block = nn.Sequential(
+            nn.Conv2d(channels, channels, 3, padding=1),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels, channels, 3, padding=1),
+            nn.BatchNorm2d(channels)
         )
 
     def forward(self, x):
-        x = self.cnn1(x)
-        x = self.relu(x)
-        x = self.cnn2(x)
-        return x
-    pass
+        return torch.relu(x + self.block(x))
+
+
+class MyModel(nn.Module):
+    def __init__(self, n_in_channels: int):
+        super().__init__()
+
+        self.encoder = nn.Sequential(
+            nn.Conv2d(n_in_channels, 64, 3, padding=1),
+            nn.ReLU(inplace=True),
+
+            ResidualBlock(64),
+            ResidualBlock(64),
+
+            nn.Conv2d(64, 128, 3, padding=1),
+            nn.ReLU(inplace=True),
+
+            ResidualBlock(128),
+            ResidualBlock(128),
+        )
+
+        self.decoder = nn.Sequential(
+            nn.Conv2d(128, 64, 3, padding=1),
+            nn.ReLU(inplace=True),
+
+            ResidualBlock(64),
+
+            nn.Conv2d(64, 3, 3, padding=1),
+            nn.Sigmoid()  # outputs in [0,1]
+        )
+
+    def forward(self, x):
+        enc = self.encoder(x)
+        out = self.decoder(enc)
+        return out
