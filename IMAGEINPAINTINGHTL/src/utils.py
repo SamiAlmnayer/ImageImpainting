@@ -16,12 +16,11 @@ def plot(inputs, targets, predictions, path, update):
     """Plotting the inputs, targets and predictions to file `path`"""
 
     os.makedirs(path, exist_ok=True)
+    fig, axes = plt.subplots(ncols=3, figsize=(15, 5))
 
     for i in range(len(inputs)):
-        # Create fresh figure for each sample to avoid memory accumulation
-        fig, axes = plt.subplots(ncols=3, figsize=(15, 5))
-        
         for ax, data, title in zip(axes, [inputs, targets, predictions], ["Input", "Target", "Prediction"]):
+            ax.clear()
             ax.set_title(title)
             img = data[i:i + 1:, 0:3, :, :]
             img = np.squeeze(img)
@@ -29,9 +28,9 @@ def plot(inputs, targets, predictions, path, update):
             img = np.clip(img, 0, 1)
             ax.imshow(img)
             ax.set_axis_off()
-        
         fig.savefig(os.path.join(path, f"{update + 1:07d}_{i + 1:02d}.jpg"))
-        plt.close(fig)  # Close immediately after saving to free memory
+
+    plt.close(fig)
 
 
 def testset_plot(input_array, output_array, path, index):
@@ -41,6 +40,7 @@ def testset_plot(input_array, output_array, path, index):
     fig, axes = plt.subplots(ncols=2, figsize=(10, 5))
 
     for ax, data, title in zip(axes, [input_array, output_array], ["Input", "Prediction"]):
+        ax.clear()
         ax.set_title(title)
         img = data[0:3, :, :]
         img = np.squeeze(img)
@@ -48,9 +48,9 @@ def testset_plot(input_array, output_array, path, index):
         img = np.clip(img, 0, 1)
         ax.imshow(img)
         ax.set_axis_off()
-    
     fig.savefig(os.path.join(path, f"testset_{index + 1:07d}.jpg"))
-    plt.close(fig)  # Close immediately to free memory
+
+    plt.close(fig)
 
 
 def evaluate_model(network: torch.nn.Module, dataloader: torch.utils.data.DataLoader, loss_fn, device: torch.device):

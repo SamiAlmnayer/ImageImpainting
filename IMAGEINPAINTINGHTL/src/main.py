@@ -22,16 +22,16 @@ if __name__ == '__main__':
     config_dict['results_path'] = os.path.join("results")
     config_dict['data_path'] = os.path.join("data", "dataset")
     config_dict['device'] = None
-    config_dict['learningrate'] = 5e-4  # Increased from 3e-4 for faster convergence with improved architecture
-    config_dict['weight_decay'] = 1e-5  # Light L2 regularization for better generalization
-    config_dict['n_updates'] = 30000  # Increased to 30k for better convergence with deeper model
-    config_dict['batchsize'] = 32  # Reduced from 64 for better gradient estimates on 100x100 images
-    config_dict['early_stopping_patience'] = 20
+    config_dict['learningrate'] = 3e-4
+    config_dict['weight_decay'] = 0.0 # default is 0
+    config_dict['n_updates'] = 20000
+    config_dict['batchsize'] = 64
+    config_dict['early_stopping_patience'] = 15
     config_dict['use_wandb'] = False
 
     config_dict['print_train_stats_at'] = 10
     config_dict['print_stats_at'] = 100
-    config_dict['plot_at'] = 200  # Reduced plotting frequency to save computation
+    config_dict['plot_at'] = 100
     config_dict['validate_at'] = 500
 
     network_config = {

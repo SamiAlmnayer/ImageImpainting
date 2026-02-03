@@ -22,21 +22,6 @@ def masked_mse(pred, target, mask):
     loss = ((pred - target) ** 2) * missing
     return loss.sum() / missing.sum().clamp(min=1.0)
 
-
-def masked_l1(pred, target, mask):
-    """L1 loss for sharper edges and better texture consistency"""
-    missing = 1.0 - mask
-    loss = torch.abs(pred - target) * missing
-    return loss.sum() / missing.sum().clamp(min=1.0)
-
-
-def masked_combined_loss(pred, target, mask, alpha=0.7):
-    """Combine L1 (texture) and MSE (smoothness) for better inpainting quality"""
-    mse = masked_mse(pred, target, mask)
-    l1 = masked_l1(pred, target, mask)
-    return alpha * l1 + (1.0 - alpha) * mse
-
-
 def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_stopping_patience, device, learningrate,
           weight_decay, n_updates, use_wandb, print_train_stats_at, print_stats_at, plot_at, validate_at, batchsize,
           network_config: dict):
@@ -96,11 +81,8 @@ def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_st
     # defining the loss
     mse_loss = torch.nn.MSELoss()
 
-    # defining the optimizer with better settings for stability
-    optimizer = torch.optim.Adam(network.parameters(), lr=learningrate, weight_decay=weight_decay, betas=(0.9, 0.999))
-
-    # Learning rate scheduler for stable training convergence
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_updates, eta_min=1e-6)
+    # defining the optimizer
+    optimizer = torch.optim.Adam(network.parameters(), lr=learningrate, weight_decay=weight_decay)
 
     if use_wandb:
         wandb.watch(network, mse_loss, log="all", log_freq=10)
@@ -130,17 +112,12 @@ def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_st
             output = network(input)
 
             mask = input[:, 3:4, :, :]
-            
-            # Use combined loss for better quality (L1 + MSE balance)
-            loss = masked_combined_loss(output, target, mask, alpha=0.7)
+            loss = masked_mse(output, target, mask)
+
 
             loss.backward()
 
-            # Gradient clipping to prevent instability
-            torch.nn.utils.clip_grad_norm_(network.parameters(), max_norm=1.0)
-
             optimizer.step()
-            scheduler.step()
 
             loss_list.append(loss.item())
 
