@@ -19,8 +19,16 @@ import wandb
 
 def masked_mse(pred, target, mask):
     missing = 1.0 - mask
-    loss = ((pred - target) ** 2) * missing
-    return loss.sum() / missing.sum().clamp(min=1.0)
+    known = mask
+
+    loss_missing = ((pred - target) ** 2) * missing
+    loss_known = ((pred - target) ** 2) * known
+
+    return (
+        5.0 * loss_missing.sum() / missing.sum().clamp(min=1.0)
+        + 0.1 * loss_known.sum() / known.sum().clamp(min=1.0)
+    )
+
 
 def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_stopping_patience, device, learningrate,
           weight_decay, n_updates, use_wandb, print_train_stats_at, print_stats_at, plot_at, validate_at, batchsize,
@@ -110,8 +118,10 @@ def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_st
             optimizer.zero_grad()
 
             output = network(input)
-
             mask = input[:, 3:4, :, :]
+            output = output * (1.0 - mask) + target * mask
+
+            
             loss = masked_mse(output, target, mask)
 
 

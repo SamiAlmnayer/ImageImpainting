@@ -13,10 +13,10 @@ class ResidualBlock(nn.Module):
         super().__init__()
         self.block = nn.Sequential(
             nn.Conv2d(channels, channels, 3, padding=1),
-            nn.BatchNorm2d(channels),
+            nn.BatchNorm2d(channels, track_running_stats=False),
             nn.ReLU(inplace=True),
             nn.Conv2d(channels, channels, 3, padding=1),
-            nn.BatchNorm2d(channels)
+            nn.BatchNorm2d(channels, track_running_stats=False),
         )
 
     def forward(self, x):
