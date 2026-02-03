@@ -19,15 +19,9 @@ import wandb
 
 def masked_mse(pred, target, mask):
     missing = 1.0 - mask
-    known = mask
 
-    loss_missing = ((pred - target) ** 2) * missing
-    loss_known = ((pred - target) ** 2) * known
-
-    return (
-        5.0 * loss_missing.sum() / missing.sum().clamp(min=1.0)
-        + 0.1 * loss_known.sum() / known.sum().clamp(min=1.0)
-    )
+    loss = ((pred - target) ** 2) * missing
+    return loss.sum() / missing.sum().clamp(min=1.0)
 
 
 def train(seed, testset_ratio, validset_ratio, data_path, results_path, early_stopping_patience, device, learningrate,
