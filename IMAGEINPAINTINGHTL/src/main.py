@@ -22,11 +22,11 @@ if __name__ == '__main__':
     config_dict['results_path'] = os.path.join("results")
     config_dict['data_path'] = os.path.join("data", "dataset")
     config_dict['device'] = None
-    config_dict['learningrate'] = 8e-4
-    config_dict['weight_decay'] = 5e-5 # default is 0
-    config_dict['n_updates'] = 20000
-    config_dict['batchsize'] = 32            
-    config_dict['early_stopping_patience'] = 20
+    config_dict['learningrate'] = 3e-4
+    config_dict['weight_decay'] = 0.0 # default is 0
+    config_dict['n_updates'] = 70000
+    config_dict['batchsize'] = 64
+    config_dict['early_stopping_patience'] = 15
     config_dict['use_wandb'] = False
 
     config_dict['print_train_stats_at'] = 10
